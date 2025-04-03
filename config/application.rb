@@ -40,5 +40,24 @@ module ApiExplorerRails
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    config.before_configuration do
+      env_file = Rails.root.join('.env')
+      Dotenv.load(env_file) if File.exist?(env_file)
+    end
+
+    # Lograge for structured logging
+    config.lograge.enabled = true
+    config.lograge.custom_options = lambda do |event|
+      {
+        method: event.payload[:method],
+        path: event.payload[:path],
+        query: event.payload[:params].except('controller', 'action').to_query,
+        status: event.payload[:status],
+        cache: event.payload[:headers]['X-Cache'] || 'UNKNOWN',
+        duration: "#{event.duration.round(2)}ms"
+      }
+    end
+    config.lograge.formatter = Lograge::Formatters::KeyValue.new
   end
 end
