@@ -2,10 +2,6 @@ class GithubController < ApplicationController
   include HTTParty
   base_uri 'https://api.github.com'
 
-  # In-memory cache
-  CACHE = {}
-  CACHE_TTL = 30 * 60 # 30 minutes in seconds
-
   before_action :set_default_headers
 
   def show
@@ -16,24 +12,27 @@ class GithubController < ApplicationController
     end
 
     cache_key = "github:#{username}"
-    cached = CACHE[cache_key]
+    redis = Redis.new(host: ENV['REDIS_HOST'], port: ENV['REDIS_PORT'], password: ENV['REDIS_PASSWORD'])
+    cached = redis.get(cache_key)
 
-    if cached && (Time.now.to_f - cached[:timestamp]) < CACHE_TTL
+    if cached
       headers['X-Cache'] = 'HIT'
-      render json: cached[:data]
+      render json: JSON.parse(cached)
       return
     end
 
     response_data = self.class.get("/users/#{username}", headers: { 'Authorization' => "Bearer #{ENV['GITHUB_TOKEN']}" })
     if response_data.success?
-      CACHE[cache_key] = { data: response_data.parsed_response, timestamp: Time.now.to_f }
+      redis.setex(cache_key, 30 * 60, response_data.parsed_response.to_json)
       headers['X-Cache'] = 'MISS'
       render json: response_data.parsed_response
     else
+      logger.error "GitHub API error: #{response_data.code} - #{response_data.message}"
       render json: { detail: 'GitHub API error' }, status: response_data.code
     end
-  rescue StandardError
-    render json: { detail: 'Failed to reach GitHub' }, status: :internal_server_error
+  rescue StandardError => e
+    logger.error "Failed to reach GitHub: #{e.message}"
+    render json: { detail: 'Failed to reach GitHub', error: e.message }, status: :internal_server_error
   end
 
   private
