@@ -13,6 +13,8 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem 'lograge'
 gem "dotenv-rails", groups: [:development, :test]
 gem 'httparty'
+gem 'redis', '~> 5.2'
+
 gem 'rack-cors'
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 # gem "rack-cors"
