@@ -50,6 +50,7 @@ module ApiExplorerRails
     config.lograge.enabled = true
     config.lograge.custom_options = lambda do |event|
       {
+        time: Time.now.iso8601,
         method: event.payload[:method],
         path: event.payload[:path],
         query: event.payload[:params].except('controller', 'action').to_query,
