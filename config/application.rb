@@ -55,7 +55,7 @@ module ApiExplorerRails
         path: event.payload[:path],
         query: event.payload[:params].except('controller', 'action').to_query,
         status: event.payload[:status],
-        cache: event.payload[:response]["x-cache"],
+        cache: event.payload[:response]["X-Cache"],
         duration: "#{event.duration.round(2)}ms"
       }
     end
