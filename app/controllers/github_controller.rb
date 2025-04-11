@@ -101,6 +101,17 @@ class GithubController < ApplicationController
     end
   end
 
+  def clear_cache
+    begin
+      REDIS.flushdb
+      logger.info "Cache cleared"
+      render json: { detail: "Cache cleared successfully" }
+    rescue StandardError => e
+      logger.error "Failed to clear cache: #{e.message}"
+      render json: { detail: "Failed to clear cache" }, status: :internal_server_error
+    end
+  end
+
   private
 
   def set_default_headers
@@ -109,7 +120,7 @@ class GithubController < ApplicationController
     headers['Pragma'] = 'no-cache'
     headers['Expires'] = '0'
     headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
-    headers['Access-Control-Allow-Methods'] = 'GET'
+    headers['Access-Control-Allow-Methods'] = 'GET, POST'
     headers['Access-Control-Allow-Headers'] = '*'
   end
 end
