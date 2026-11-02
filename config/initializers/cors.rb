@@ -15,9 +15,17 @@
 #   end
 # end
 
+frontend_origins = ENV.fetch("FRONTEND_ORIGIN", "http://localhost:3000")
+  .split(",")
+  .map { |origin| origin.strip.sub(%r{/+\z}, "") }
+  .reject(&:empty?)
+
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins 'http://localhost:3000'
-    resource '*', headers: :any, methods: [:get, :post], expose: ['X-Cache']
+    origins(*frontend_origins)
+    resource "*",
+      headers: :any,
+      methods: [:get, :post, :options],
+      expose: ["X-Cache"]
   end
 end

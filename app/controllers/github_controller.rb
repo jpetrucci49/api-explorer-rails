@@ -1,6 +1,6 @@
 class GithubController < ApplicationController
   include HTTParty
-  base_uri ENV['GITHUB_API_URL']
+  base_uri ENV.fetch("GITHUB_API_URL", "https://api.github.com")
 
   before_action :set_default_headers
 
@@ -177,8 +177,5 @@ class GithubController < ApplicationController
     headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     headers['Pragma'] = 'no-cache'
     headers['Expires'] = '0'
-    headers['Access-Control-Allow-Origin'] = 'http://localhost:3000'
-    headers['Access-Control-Allow-Methods'] = 'GET, POST'
-    headers['Access-Control-Allow-Headers'] = '*'
   end
 end
